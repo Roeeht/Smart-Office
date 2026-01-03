@@ -17,25 +17,37 @@ A containerized, enterprise-style full-stack system demonstrating microservice a
    ```bash
    cd smart-office
    cp .env.example .env
-   # Edit .env to set a secure JWT_SECRET (minimum 32 characters)
    ```
 
-2. **Build and start all services:**
+2. **Edit `.env` and set your own values:**
+
+   ```bash
+   # Generate a secure JWT secret
+   openssl rand -base64 32
+   ```
+
+   Then edit `.env`:
+   - `JWT_SECRET` — paste the generated secret (minimum 32 characters)
+   - `POSTGRES_PASSWORD` — create any secure password (e.g., `MyPostgres123!`)
+   - `MONGO_PASSWORD` — create any secure password (e.g., `MyMongo456!`)
+   - `SEED_ADMIN_PASSWORD` — the password you'll use to login as Admin
+
+   > **Note:** These passwords are for your local Docker containers. You create them yourself — they don't come from anywhere else.
+
+3. **Build and start all services:**
 
    ```bash
    docker-compose up --build
    ```
 
-3. **Access the application:**
+4. **Access the application:**
    - Frontend: http://localhost:3000
    - Auth Service API: http://localhost:5001
    - Resource Service API: http://localhost:5002
 
-### Default Credentials
-
-On first startup, an Admin user is automatically seeded using the values from your `.env` file.
-
-Configure `SEED_ADMIN_NAME` and `SEED_ADMIN_PASSWORD` in `.env` before starting.
+5. **Login with your configured credentials:**
+   - Username: `admin` (or whatever you set `SEED_ADMIN_NAME` to)
+   - Password: whatever you set `SEED_ADMIN_PASSWORD` to
 
 ## Architecture Overview
 
