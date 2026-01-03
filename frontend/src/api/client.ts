@@ -85,10 +85,23 @@ const handleAuthError = (error: AxiosError<ProblemDetails>): Promise<never> => {
  */
 const transformError = (error: AxiosError<ProblemDetails>): ApiError => {
   if (error.response) {
+    const data = error.response.data;
+    let message = data?.detail || data?.title || 'An error occurred';
+    
+    // Extract validation errors if present
+    if (data?.errors && typeof data.errors === 'object') {
+      const errorMessages = Object.entries(data.errors)
+        .flatMap(([field, messages]) => messages.map(msg => `${field}: ${msg}`))
+        .join('; ');
+      if (errorMessages) {
+        message = errorMessages;
+      }
+    }
+    
     return {
-      message: error.response.data?.detail || error.response.data?.title || 'An error occurred',
+      message,
       status: error.response.status,
-      details: error.response.data,
+      details: data,
     };
   }
   

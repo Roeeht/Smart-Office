@@ -27,6 +27,7 @@ A containerized, enterprise-style full-stack system demonstrating microservice a
    ```
 
    Then edit `.env`:
+
    - `JWT_SECRET` — paste the generated secret (minimum 32 characters)
    - `POSTGRES_PASSWORD` — create any secure password (e.g., `MyPostgres123!`)
    - `MONGO_PASSWORD` — create any secure password (e.g., `MyMongo456!`)
@@ -41,6 +42,7 @@ A containerized, enterprise-style full-stack system demonstrating microservice a
    ```
 
 4. **Access the application:**
+
    - Frontend: http://localhost:3000
    - Auth Service API: http://localhost:5001
    - Resource Service API: http://localhost:5002
