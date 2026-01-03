@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import {
@@ -49,6 +49,38 @@ export const DashboardPage: React.FC = observer(() => {
     status: "Available",
   });
 
+  // Secret admin feature - triple click on title
+  const [clickCount, setClickCount] = useState(0);
+  const [adminModeActive, setAdminModeActive] = useState(false);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTitleClick = () => {
+    // Clear existing timer
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+
+    if (newCount >= 3) {
+      // Triple click detected
+      if (authStore.isAdmin) {
+        // Admin: toggle red title
+        setAdminModeActive((prev) => !prev);
+      } else {
+        // Non-admin: redirect to access denied
+        navigate("/access-denied");
+      }
+      setClickCount(0);
+    } else {
+      // Reset click count after 1 second of inactivity
+      clickTimerRef.current = setTimeout(() => {
+        setClickCount(0);
+      }, 1000);
+    }
+  };
+
   // Fetch assets on mount
   useEffect(() => {
     assetStore.fetchAssets();
@@ -81,9 +113,9 @@ export const DashboardPage: React.FC = observer(() => {
     }
   };
 
-  const getStatusColor = (
-    status: string
-  ): "success" | "warning" | "error" | "default" => {
+  type StatusColor = "success" | "warning" | "error" | "default";
+
+  const getStatusColor = (status: string): StatusColor => {
     switch (status.toLowerCase()) {
       case "available":
         return "success";
@@ -102,7 +134,17 @@ export const DashboardPage: React.FC = observer(() => {
       {/* App Bar */}
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            onClick={handleTitleClick}
+            sx={{
+              flexGrow: 1,
+              userSelect: "none",
+              color: adminModeActive ? "error.main" : "inherit",
+              transition: "color 0.3s ease",
+            }}
+          >
             Smart Office
           </Typography>
           <Chip

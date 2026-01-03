@@ -126,6 +126,18 @@ curl -X POST http://localhost:5002/assets \
 - **Admin** accounts are created only through seed configuration
 - Backend authorization is the enforcement layer; frontend hides UI elements for UX
 
+### Hidden Admin Feature (Access Permissions Demo)
+
+A hidden feature was added to demonstrate the implementation of different access permissions in the application.
+
+**How it works:**
+
+- Triple-click on the "Smart Office" title in the header (within 1 second)
+- **Admin users:** The title will turn red, indicating admin mode is active. Triple-click again to toggle it off.
+- **Non-admin users:** Will be redirected to the `/access-denied` page.
+
+This showcases how the `ProtectedRoute` component and `authStore.isAdmin` can be used to restrict access to certain features based on user roles.
+
 ## Project Structure
 
 ```
@@ -174,12 +186,44 @@ This project demonstrates several enterprise patterns:
 - **Clean architecture** with separation of concerns (DTOs, Services, Controllers)
 - **Container orchestration** with health checks and dependency ordering
 
+### Technical Difficulties & Solutions
+
+1. **EF Core 9 Pending Migrations Warning**
+
+   - _Problem:_ EF Core 9 throws errors when using `MigrateAsync()` without explicit migrations in a code-first approach.
+   - _Solution:_ Used `EnsureCreatedAsync()` for this demo project, which creates the schema without migration tracking. For production, proper migrations would be generated.
+
+2. **Docker Health Checks with .NET Runtime Image**
+
+   - _Problem:_ Initial Dockerfiles used `curl` for health checks, but the minimal `aspnet:9.0` runtime image doesn't include curl.
+   - _Solution:_ Changed health checks to use `dotnet --list-runtimes` as a simple process check, or could add `wget` as lighter alternative.
+
+3. **JWT Validation Between Services**
+
+   - _Problem:_ Resource Service needed to validate tokens issued by Auth Service without direct communication.
+   - _Solution:_ Used shared symmetric HMAC-SHA256 signing key via environment variables, ensuring both services can validate tokens statelessly.
+
+4. **Frontend Validation Error Display**
+
+   - _Problem:_ ASP.NET returns field-specific validation errors in a nested `errors` object, but frontend only showed generic messages.
+   - _Solution:_ Enhanced the Axios error interceptor to parse the `errors` object and format field-specific messages for display.
+
+5. **Secret Management for Git**
+   - _Problem:_ Initial commit included default passwords in docker-compose.yml fallbacks, triggering GitHub secret scanning alerts.
+   - _Solution:_ Removed all default values from docker-compose.yml, using only environment variable references. Updated .env.example with placeholder text instead of real passwords.
+
 ## Tooling Disclosure
 
+### Frameworks & Libraries
+
 - .NET 9 with Entity Framework Core and Npgsql
-- React 18+ with TypeScript, MobX, and MUI v5
+- React 19 with TypeScript, MobX, and MUI v5
 - Docker with multi-stage builds
 - PostgreSQL 16 and MongoDB 7
+
+### AI Tools
+
+- **GitHub Copilot (Claude)** — Used extensively for code generation, architecture planning, debugging, and documentation. All generated code was reviewed and understood before integration.
 
 ---
 
