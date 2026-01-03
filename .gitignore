@@ -1,0 +1,140 @@
+# ===========================
+# .NET
+# ===========================
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.pdb
+*.log
+*.cache
+project.lock.json
+*.nupkg
+*.snupkg
+
+# User-specific files
+*.rsuser
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# ===========================
+# Node / React / TypeScript
+# ===========================
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# ===========================
+# Environment & Secrets
+# ===========================
+.env
+.env.*
+!.env.example
+*.local
+
+# JWT secrets, connection strings, private keys
+*.pem
+*.key
+*.pfx
+*.p12
+appsettings.Development.json
+appsettings.Local.json
+
+# ===========================
+# Docker
+# ===========================
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ===========================
+# Database Data Directories
+# ===========================
+# PostgreSQL
+postgres-data/
+pgdata/
+auth-db-data/
+
+# MongoDB
+mongo-data/
+mongodb-data/
+resource-db-data/
+
+# Generic volume mounts
+data/
+volumes/
+
+# ===========================
+# OS Files
+# ===========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===========================
+# IDEs and Editors
+# ===========================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code (keep extensions.json if needed)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# JetBrains Rider
+*.sln.iml
+
+# ===========================
+# Testing
+# ===========================
+coverage/
+*.coverage
+*.coveragexml
+TestResults/
+
+# ===========================
+# Misc
+# ===========================
+*.swp
+*.swo
+*~
+.temp/
+.tmp/
+
+# ===========================
+# Project Artifacts
+# ===========================
+# Assignment PDF and context files
+*.pdf
+COPILOT_CONTEXT.md

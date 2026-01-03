@@ -1,0 +1,148 @@
+# Smart Office Asset Manager
+# Docker Compose orchestration for all services
+
+services:
+  # PostgreSQL database for Auth Service
+  auth-db:
+    image: postgres:16-alpine
+    container_name: smart-office-auth-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - smart-office-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # MongoDB for Resource Service
+  mongo-db:
+    image: mongo:7
+    container_name: smart-office-mongo-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo-db-data:/data/db
+    networks:
+      - smart-office-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Auth Service - handles user registration, login, and JWT issuance
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: smart-office-auth-service
+    environment:
+      # Database connection
+      DATABASE_URL: Host=auth-db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      # JWT configuration (shared with resource-service)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_EXP_MINUTES: ${JWT_EXP_MINUTES}
+      # Admin seeding
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      # ASP.NET Core
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    ports:
+      - "5001:8080"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - smart-office-network
+    healthcheck:
+      test: ["CMD-SHELL", "dotnet --list-runtimes || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Resource Service - handles asset management with JWT validation
+  resource-service:
+    build:
+      context: ./resource-service
+      dockerfile: Dockerfile
+    container_name: smart-office-resource-service
+    environment:
+      # MongoDB connection
+      MONGODB_CONNECTION_STRING: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo-db:27017
+      MONGODB_DATABASE_NAME: ${MONGODB_DATABASE_NAME}
+      # JWT configuration (must match auth-service)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      # ASP.NET Core
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    ports:
+      - "5002:8080"
+    depends_on:
+      mongo-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - smart-office-network
+    healthcheck:
+      test: ["CMD-SHELL", "dotnet --list-runtimes || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Frontend - React SPA served by nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smart-office-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth-service
+      - resource-service
+    networks:
+      - smart-office-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+# Named volumes for database persistence
+volumes:
+  auth-db-data:
+    name: smart-office-auth-db-data
+  mongo-db-data:
+    name: smart-office-mongo-db-data
+
+# Single network for all services
+networks:
+  smart-office-network:
+    name: smart-office-network
+    driver: bridge
