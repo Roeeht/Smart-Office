@@ -1,40 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import {
   Box,
   Container,
   Typography,
-  AppBar,
-  Toolbar,
   Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
   CircularProgress,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Logout as LogoutIcon,
-  Refresh as RefreshIcon,
-} from "@mui/icons-material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { authStore, assetStore } from "../stores";
+import { useTitleClickHandler } from "../hooks";
+import { DashboardAppBar, AssetsTable, AddAssetDialog } from "../components";
 import type { CreateAssetRequest } from "../types";
 
 /**
@@ -50,36 +28,12 @@ export const DashboardPage: React.FC = observer(() => {
   });
 
   // Secret admin feature - triple click on title
-  const [clickCount, setClickCount] = useState(0);
-  const [adminModeActive, setAdminModeActive] = useState(false);
-  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleTitleClick = () => {
-    // Clear existing timer
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-    }
-
-    const newCount = clickCount + 1;
-    setClickCount(newCount);
-
-    if (newCount >= 3) {
-      // Triple click detected
-      if (authStore.isAdmin) {
-        // Admin: toggle red title
-        setAdminModeActive((prev) => !prev);
-      } else {
-        // Non-admin: redirect to access denied
-        navigate("/access-denied");
-      }
-      setClickCount(0);
-    } else {
-      // Reset click count after 1 second of inactivity
-      clickTimerRef.current = setTimeout(() => {
-        setClickCount(0);
-      }, 1000);
-    }
-  };
+  const { handleClick: handleTitleClick, isActive: adminModeActive } =
+    useTitleClickHandler({
+      isAdmin: authStore.isAdmin,
+      onAdminAction: () => {}, // Toggle handled internally
+      onNonAdminAction: () => navigate("/access-denied"),
+    });
 
   // Fetch assets on mount
   useEffect(() => {
@@ -113,54 +67,16 @@ export const DashboardPage: React.FC = observer(() => {
     }
   };
 
-  type StatusColor = "success" | "warning" | "error" | "default";
-
-  const getStatusColor = (status: string): StatusColor => {
-    switch (status.toLowerCase()) {
-      case "available":
-        return "success";
-      case "occupied":
-      case "reserved":
-        return "warning";
-      case "maintenance":
-        return "error";
-      default:
-        return "default";
-    }
-  };
-
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {/* App Bar */}
-      <AppBar position="static">
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            onClick={handleTitleClick}
-            sx={{
-              flexGrow: 1,
-              userSelect: "none",
-              color: adminModeActive ? "error.main" : "inherit",
-              transition: "color 0.3s ease",
-            }}
-          >
-            Smart Office
-          </Typography>
-          <Chip
-            label={authStore.role}
-            color={authStore.isAdmin ? "secondary" : "default"}
-            size="small"
-            sx={{ mr: 2 }}
-          />
-          <IconButton color="inherit" onClick={handleRefresh} title="Refresh">
-            <RefreshIcon />
-          </IconButton>
-          <IconButton color="inherit" onClick={handleLogout} title="Logout">
-            <LogoutIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+      <DashboardAppBar
+        onLogout={handleLogout}
+        onRefresh={handleRefresh}
+        onTitleClick={handleTitleClick}
+        adminModeActive={adminModeActive}
+        role={authStore.role}
+        isAdmin={authStore.isAdmin}
+      />
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
@@ -208,48 +124,7 @@ export const DashboardPage: React.FC = observer(() => {
 
         {/* Assets Table */}
         {!assetStore.isLoading && (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Created</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {assetStore.assets.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Typography color="text.secondary" sx={{ py: 4 }}>
-                        No assets found.{" "}
-                        {authStore.isAdmin &&
-                          'Click "Add Asset" to create one.'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  assetStore.assets.map((asset) => (
-                    <TableRow key={asset.id}>
-                      <TableCell>{asset.name}</TableCell>
-                      <TableCell>{asset.type}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={asset.status}
-                          color={getStatusColor(asset.status)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(asset.createdAt).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <AssetsTable assets={assetStore.assets} isAdmin={authStore.isAdmin} />
         )}
 
         {/* Member Info */}
@@ -266,71 +141,15 @@ export const DashboardPage: React.FC = observer(() => {
       </Container>
 
       {/* Add Asset Dialog - Only Admin can see this */}
-      <Dialog
+      <AddAssetDialog
         open={isDialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Add New Asset</DialogTitle>
-        <DialogContent>
-          {assetStore.error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {assetStore.error}
-            </Alert>
-          )}
-          <TextField
-            label="Asset Name"
-            fullWidth
-            margin="normal"
-            value={newAsset.name}
-            onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })}
-            required
-            placeholder="e.g., Desk A1, Conference Room B"
-          />
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Type</InputLabel>
-            <Select
-              value={newAsset.type}
-              label="Type"
-              onChange={(e) =>
-                setNewAsset({ ...newAsset, type: e.target.value })
-              }
-            >
-              <MenuItem value="Desk">Desk</MenuItem>
-              <MenuItem value="Room">Room</MenuItem>
-              <MenuItem value="Equipment">Equipment</MenuItem>
-              <MenuItem value="Vehicle">Vehicle</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={newAsset.status}
-              label="Status"
-              onChange={(e) =>
-                setNewAsset({ ...newAsset, status: e.target.value })
-              }
-            >
-              <MenuItem value="Available">Available</MenuItem>
-              <MenuItem value="Occupied">Occupied</MenuItem>
-              <MenuItem value="Reserved">Reserved</MenuItem>
-              <MenuItem value="Maintenance">Maintenance</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleCreateAsset}
-            variant="contained"
-            disabled={!newAsset.name || assetStore.isLoading}
-          >
-            {assetStore.isLoading ? <CircularProgress size={24} /> : "Create"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onSubmit={handleCreateAsset}
+        asset={newAsset}
+        onAssetChange={setNewAsset}
+        isLoading={assetStore.isLoading}
+        error={assetStore.error}
+      />
     </Box>
   );
 });
