@@ -189,27 +189,12 @@ This project demonstrates several enterprise patterns:
 
 ### Technical Difficulties & Solutions
 
-1. **EF Core 9 Pending Migrations Warning**
+1. **Learning New Technology Stack**
 
-   - _Problem:_ EF Core 9 throws errors when using `MigrateAsync()` without explicit migrations in a code-first approach.
-   - _Solution:_ Used `EnsureCreatedAsync()` for this demo project, which creates the schema without migration tracking. For production, proper migrations would be generated.
+   - _Problem:_ This project required working with unfamiliar technologies including .NET 9, JWT authentication, microservice architecture, and role-based authorization patterns.
+   - _Solution:_ Leveraged AI tools for guidance and code generation while ensuring all concepts were understood before integration. Focused on understanding the "why" behind each pattern (stateless JWT, service isolation, policy-based auth) rather than just copying code.
 
-2. **Docker Health Checks with .NET Runtime Image**
-
-   - _Problem:_ Initial Dockerfiles used `curl` for health checks, but the minimal `aspnet:9.0` runtime image doesn't include curl.
-   - _Solution:_ Changed health checks to use `dotnet --list-runtimes` as a simple process check, or could add `wget` as lighter alternative.
-
-3. **JWT Validation Between Services**
-
-   - _Problem:_ Resource Service needed to validate tokens issued by Auth Service without direct communication.
-   - _Solution:_ Used shared symmetric HMAC-SHA256 signing key via environment variables, ensuring both services can validate tokens statelessly.
-
-4. **Frontend Validation Error Display**
-
-   - _Problem:_ ASP.NET returns field-specific validation errors in a nested `errors` object, but frontend only showed generic messages.
-   - _Solution:_ Enhanced the Axios error interceptor to parse the `errors` object and format field-specific messages for display.
-
-5. **Secret Management for Git**
+2. **Secret Management for Git**
    - _Problem:_ Initial commit included default passwords in docker-compose.yml fallbacks, triggering GitHub secret scanning alerts.
    - _Solution:_ Removed all default values from docker-compose.yml, using only environment variable references. Updated .env.example with placeholder text instead of real passwords.
 
@@ -224,7 +209,8 @@ This project demonstrates several enterprise patterns:
 
 ### AI Tools
 
-- **GitHub Copilot (Claude)** — Used extensively for code generation, architecture planning, debugging, and documentation. All generated code was reviewed and understood before integration.
+- **GitHub Copilot (Claude Opus 4.5 / Sonnet)** — Used extensively for code generation, architecture planning, debugging, and documentation. All generated code was reviewed and understood before integration.
+- **ChatGPT** — Used for learning concepts, troubleshooting, and exploring alternative approaches.
 
 ---
 
