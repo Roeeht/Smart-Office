@@ -81,8 +81,10 @@ mongo-data/
 mongodb-data/
 resource-db-data/
 
-# Generic volume mounts
-data/
+# Generic volume mounts for database data
+# Note: This excludes Data/ folders with source code (e.g., auth-service/Data/)
+*-data/
+/data/
 volumes/
 
 # ===========================
