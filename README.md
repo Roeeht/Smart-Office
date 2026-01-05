@@ -1,5 +1,7 @@
 # Smart Office Asset Manager
 
+> **🚀 Active Development Branch:** This is the main development branch with ongoing improvements. For a stable reference version, see the [`stable-v1`](https://github.com/Roeeht/Smart-Office/tree/stable-v1) branch.
+
 A containerized, enterprise-style full-stack system demonstrating microservice architecture, JWT authentication, role-based access control, and Docker Compose orchestration.
 
 ## Quick Start
@@ -214,4 +216,7 @@ This project demonstrates several enterprise patterns:
 
 ---
 
-Built as a demonstration of interview-ready full-stack architecture.
+## Branches
+
+- **`main`** — Active development branch with ongoing improvements (you are here)
+- **`stable-v1`** — [Stable release version](https://github.com/Roeeht/Smart-Office/tree/stable-v1)
