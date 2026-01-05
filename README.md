@@ -1,5 +1,7 @@
 # Smart Office Asset Manager
 
+> **📌 Note:** This is the `stable-v1` branch — a snapshot of the project at a stable milestone. Active development continues on the `main` branch.
+
 A containerized, enterprise-style full-stack system demonstrating microservice architecture, JWT authentication, role-based access control, and Docker Compose orchestration.
 
 ## Quick Start
@@ -214,4 +216,7 @@ This project demonstrates several enterprise patterns:
 
 ---
 
-Built as a demonstration of interview-ready full-stack architecture.
+## Branches
+
+- **`stable-v1`** — Stable release version (you are here)
+- **`main`** — Active development branch with ongoing improvements and new features
